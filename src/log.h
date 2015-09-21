@@ -33,7 +33,7 @@ enum LOGLEVEL {
 	}\
 } while(0)
 
-enum LOGLEVEL loglevel = LOG_INFO;
-FILE *logfile;
+extern enum LOGLEVEL loglevel;
+extern FILE *logfile;
 
 #endif
