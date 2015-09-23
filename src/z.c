@@ -1,7 +1,8 @@
-#include "proxy.h"
 #include "log.h"
 enum LOGLEVEL loglevel = LOG_INFO;
 FILE *logfile;
+
+#include "proxy.h"
 int main(int argc, char *argv[]) {
 	logfile = stdout;
 	proxy *proxylist;
