@@ -1,6 +1,8 @@
 #include "request.h"
 #include "log.h"
 #include "safe.h"
+#include "http_parser.h"
+#include "http_callback.h"
 #include <stdio.h>
 #include <netdb.h>
 #include <string.h>
@@ -39,7 +41,7 @@ int socketfd(char *domain) {
 	//	inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
 	//	printf("  %s: %s\n", ipver, ipstr);
 	//}
-	
+
 	int sockfd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
 	if (sockfd == -1) {
 		LOG(LOG_FATAL, "socket create error");
@@ -87,6 +89,20 @@ void request(int sfd, char *method, char *domain, char *path, char **response_re
 			break;
 		received+=bytes;
 	} while (received < total);
+
+	http_parser_settings settings;
+	settings.on_message_begin = on_message_begin;
+	settings.on_header_field = on_header_field;
+	settings.on_header_value = on_header_value;
+
+	http_parser *parser = malloc(sizeof(http_parser));
+	http_parser_init(parser, HTTP_RESPONSE);
+
+	int nparsed = http_parser_execute(parser, &settings, response, received);
+	if (nparsed != received) {
+		LOG(LOG_FATAL, "http_parser_execute error");
+	}
+
 
 	if (received >= total) {
 		LOG(LOG_FATAL, "ERROR storing complete response from socket");
